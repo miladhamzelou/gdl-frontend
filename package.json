@@ -74,7 +74,7 @@
     "apollo-link-http": "1.5.4",
     "auth0-js": "9.7.3",
     "cookie-parser": "^1.4.3",
-    "downshift": "2.0.10",
+    "downshift": "2.1.5",
     "emotion": "9.2.8",
     "emotion-server": "9.2.8",
     "emotion-theming": "9.2.6",

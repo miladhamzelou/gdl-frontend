@@ -71,59 +71,6 @@ export default class AutoCompleteSearchField extends React.Component<
                 query: this.state.query
               }}
             />
-            {/*isOpen ? (
-              <Paper css={{ position: 'absolute', maxWidth: '960px' }}>
-                {data && data.search.results.length > 0 ? (
-                  data.search.results.map((book, index) => (
-                    <ListItem
-                      {...getItemProps({
-                        key: book.id,
-                        item: book,
-                        index,
-                        style: {
-                          backgroundColor:
-                            highlightedIndex === index
-                              ? colors.base.grayLight
-                              : 'inherit'
-                        }
-                      })}
-                      button
-                    >
-                      {book.coverImage && <Avatar src={book.coverImage.url} />}
-                      <ListItemText
-                        primary={
-                          <div>
-                            {book.title}
-                            <Typography variant="caption">
-                              {book.language.name}
-                            </Typography>
-                          </div>
-                        }
-                        secondary={book.description}
-                        primaryTypographyProps={{ noWrap: true }}
-                        secondaryTypographyProps={{ noWrap: true }}
-                      />
-                    </ListItem>
-                  ))
-                ) : this.state.query !== '' ? (
-                  <Paper
-                    css={{
-                      position: 'absolute',
-                      maxWidth: '960px',
-                      minWidth: '960px'
-                    }}
-                    square
-                  >
-                    <ListItem>
-                      <ListItemText
-                        primary={`No search results for "${this.state.query}"`}
-                        primaryTypographyProps={{ noWrap: true }}
-                      />
-                    </ListItem>
-                  </Paper>
-                ) : null}
-              </Paper>
-            ) : null*/}
           </div>
         )}
       </Downshift>
@@ -148,8 +95,15 @@ function AutoCompleteMenu({
       {({ loading, error, data }) => {
         if (loading) return null;
         return (
-          <Paper css={{ position: 'absolute', maxWidth: '960px' }}>
-            {data && data.search.results.length > 0 ? (
+          <Paper css={{ position: 'absolute', width: '960px' }} square>
+            {data.search && data.search.totalCount === 0 ? (
+              <ListItem>
+                <ListItemText
+                  primary={`No search results for "${query}"`}
+                  primaryTypographyProps={{ noWrap: true }}
+                />
+              </ListItem>
+            ) : (
               data.search.results.map((book, index) => (
                 <ListItem
                   {...getItemProps({
@@ -181,23 +135,7 @@ function AutoCompleteMenu({
                   />
                 </ListItem>
               ))
-            ) : query !== '' ? (
-              <Paper
-                css={{
-                  position: 'absolute',
-                  maxWidth: '960px',
-                  minWidth: '960px'
-                }}
-                square
-              >
-                <ListItem>
-                  <ListItemText
-                    primary={`No search results for "${query}"`}
-                    primaryTypographyProps={{ noWrap: true }}
-                  />
-                </ListItem>
-              </Paper>
-            ) : null}
+            )}
           </Paper>
         );
       }}
@@ -208,12 +146,17 @@ function AutoCompleteMenu({
 const SEARCH_QUERY = gql`
   query search($query: String!) {
     search(query: $query) {
+      totalCount
       results {
         id
         title
         description
         language {
+          code
           name
+        }
+        coverImage {
+          url
         }
       }
     }
