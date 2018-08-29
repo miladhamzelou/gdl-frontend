@@ -19,7 +19,6 @@ import {
 import { Form, Field, FormSpy } from 'react-final-form';
 import CropImageViewer from '../../components/ImageCropper/CropImageViewer';
 import {
-  fetchLanguages,
   fetchFeaturedContent,
   updateFeaturedContent,
   saveFeaturedContent,
@@ -30,11 +29,8 @@ import Layout from '../../components/Layout';
 import Row from '../../components/Row';
 import Container from '../../components/Container';
 import isEmptyString from '../../lib/isEmptyString';
-import type { FeaturedContent, ImageParameters, Language } from '../../types';
-
-type Props = {
-  languages: Array<Language>
-};
+import Languages from '../../components/Languages';
+import type { FeaturedContent, ImageParameters } from '../../types';
 
 type State = {
   featuredContent: ?FeaturedContent,
@@ -43,15 +39,7 @@ type State = {
   file: ?File
 };
 
-export default class EditFeaturedContent extends React.Component<Props, State> {
-  static async getInitialProps() {
-    const languagesRes = await fetchLanguages();
-
-    return {
-      languages: languagesRes.isOk ? languagesRes.data : []
-    };
-  }
-
+export default class EditFeaturedContent extends React.Component<{}, State> {
   state = {
     featuredContent: null,
     selectedLanguage: '',
@@ -191,23 +179,29 @@ export default class EditFeaturedContent extends React.Component<Props, State> {
 
           <FormControl fullWidth>
             <InputLabel htmlFor="language-select">Select language</InputLabel>
-
-            <Select
-              onChange={this.handleLanguageSelect}
-              value={selectedLanguage}
-              native
-              inputProps={{ id: 'language-select' }}
-            >
-              <option value="" />
-              {this.props.languages.map(language => {
+            <Languages>
+              {({ loading, error, data }) => {
+                const languages = (data && data.languages) || [];
                 return (
-                  <option key={language.code} value={language.code}>
-                    {language.name} ({language.code})
-                  </option>
+                  <Select
+                    onChange={this.handleLanguageSelect}
+                    value={selectedLanguage}
+                    native
+                    inputProps={{ id: 'language-select' }}
+                  >
+                    <option value="" />
+                    {languages.map(language => {
+                      return (
+                        <option key={language.code} value={language.code}>
+                          {language.name} ({language.code})
+                        </option>
+                      );
+                    })}
+                    ;
+                  </Select>
                 );
-              })}
-              ;
-            </Select>
+              }}
+            </Languages>
           </FormControl>
           <Form
             initialValues={featuredContent || {}}

@@ -8,9 +8,9 @@ import FormControl from '@material-ui/core/FormControl/FormControl';
 import Typography from '@material-ui/core/Typography';
 
 import Container from '../../components/Container';
-import type { Language } from '../../types';
-import { fetchLanguages, fetchSources, exportBooks } from '../../lib/fetch';
+import { fetchSources, exportBooks } from '../../lib/fetch';
 import Layout from '../../components/Layout';
+import Languages from '../../components/Languages';
 import getSourceName from '../../data/sources';
 import Row from '../../components/Row';
 
@@ -20,15 +20,7 @@ type State = {
   sources: Array<{ source: string, count: number }>
 };
 
-class Export extends React.Component<{ languages: Array<Language> }, State> {
-  static async getInitialProps() {
-    const languagesRes = await fetchLanguages();
-
-    return {
-      languages: languagesRes.isOk ? languagesRes.data : []
-    };
-  }
-
+class Export extends React.Component<{}, State> {
   state = {
     selectedLanguage: '',
     selectedSource: 'all', // Default value
@@ -104,22 +96,29 @@ class Export extends React.Component<{ languages: Array<Language> }, State> {
             <Typography variant="headline">Export books as CSV</Typography>
             <FormControl>
               <InputLabel htmlFor="language-select">Select language</InputLabel>
-              <Select
-                native
-                inputProps={{ id: 'language-select' }}
-                value={this.state.selectedLanguage}
-                onChange={this.handleLanguageChange}
-              >
-                <option value="" />
-                {this.props.languages.map(language => {
+              <Languages>
+                {({ loading, error, data }) => {
+                  const languages = (data && data.languages) || [];
                   return (
-                    <option key={language.code} value={language.code}>
-                      {language.name} ({language.code})
-                    </option>
+                    <Select
+                      native
+                      inputProps={{ id: 'language-select' }}
+                      value={this.state.selectedLanguage}
+                      onChange={this.handleLanguageChange}
+                    >
+                      <option value="" />
+                      {languages.map(language => {
+                        return (
+                          <option key={language.code} value={language.code}>
+                            {language.name} ({language.code})
+                          </option>
+                        );
+                      })}
+                      ;
+                    </Select>
                   );
-                })}
-                ;
-              </Select>
+                }}
+              </Languages>
             </FormControl>
             <FormControl>
               <InputLabel htmlFor="source-select">Select source</InputLabel>

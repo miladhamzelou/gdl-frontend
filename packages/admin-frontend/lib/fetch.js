@@ -14,7 +14,6 @@ import type {
   Category,
   RemoteData,
   Chapter,
-  Language,
   FeaturedContent,
   Book,
   StoredParameters,
@@ -196,10 +195,6 @@ export async function fetchFlaggedBooks(
   );
 
   return result;
-}
-
-export function fetchLanguages(): Promise<RemoteData<Array<Language>>> {
-  return doFetch(`${bookApiUrl}/languages`);
 }
 
 export function fetchSources(

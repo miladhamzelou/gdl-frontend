@@ -20,6 +20,8 @@ const bookApiUrl = () => {
   }
 };
 
+const apiUrl = () => 'http://localhost:4000/graphql';
+
 const imageApiUrl = () => {
   switch (GDL_ENVIRONMENT) {
     case 'local':
@@ -39,6 +41,7 @@ module.exports = {
   },
   publicRuntimeConfig: {
     imageApiUrl: imageApiUrl(),
-    bookApiUrl: bookApiUrl()
+    bookApiUrl: bookApiUrl(),
+    apiUrl: apiUrl()
   }
 };

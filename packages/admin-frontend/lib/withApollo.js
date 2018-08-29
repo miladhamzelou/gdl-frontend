@@ -7,7 +7,7 @@ import { getAuthToken } from 'gdl-auth';
 
 export default App => {
   return class Apollo extends React.Component {
-    static displayName = 'withApollo(App)';
+    static displayName = `withApollo(${App.displayName})`;
     static async getInitialProps(ctx) {
       const { Component, router } = ctx;
 
@@ -25,7 +25,7 @@ export default App => {
         }
       );
 
-      if (!process.browser) {
+      if (typeof window === 'undefined') {
         try {
           // Run all GraphQL queries
           await getDataFromTree(
