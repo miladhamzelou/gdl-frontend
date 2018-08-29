@@ -3,6 +3,8 @@
 import React from 'react';
 import Router from 'next/router';
 import Downshift from 'downshift';
+import gql from 'graphql-tag';
+import { Query } from 'react-apollo';
 import {
   Avatar,
   ListItemText,
@@ -11,18 +13,12 @@ import {
   Typography
 } from '@material-ui/core';
 
-import { search } from '../../lib/fetch';
 import colors from '../../style/colors';
 import type { Book } from '../../types';
 import SearchField from './SearchField';
 
 type State = {
-  searchResult: ?{
-    results: Array<Book>,
-    page: number,
-    totalCount: number
-  },
-  currentInput: string
+  query: string
 };
 
 export default class AutoCompleteSearchField extends React.Component<
@@ -30,8 +26,7 @@ export default class AutoCompleteSearchField extends React.Component<
   State
 > {
   state = {
-    searchResult: null,
-    currentInput: ''
+    query: ''
   };
 
   handleSelection = (selectedBook: Book) => {
@@ -41,31 +36,11 @@ export default class AutoCompleteSearchField extends React.Component<
     });
   };
 
-  handleSearch = (event: SyntheticInputEvent<EventTarget>) => {
-    this.setState({ searchResult: null, currentInput: event.target.value });
-
-    if (!event.target.value) {
-      return;
-    }
-
-    this.fetchBooks(event);
-  };
-
-  fetchBooks = async (event: SyntheticInputEvent<EventTarget>) => {
-    const queryRes = await search(event.target.value);
-
-    if (!queryRes.isOk) {
-      return;
-    }
-
-    const searchResult = queryRes.data;
-
-    this.setState({ searchResult: searchResult });
+  handleChange = (event: SyntheticInputEvent<EventTarget>) => {
+    this.setState({ query: event.target.value });
   };
 
   render() {
-    const result = this.state.searchResult;
-
     return (
       <Downshift
         onChange={this.handleSelection}
@@ -82,14 +57,24 @@ export default class AutoCompleteSearchField extends React.Component<
             <SearchField
               {...getInputProps({
                 placeholder: 'Search books',
-                onChange: e => this.handleSearch(e),
+                onChange: this.handleChange,
                 autoFocus: true
               })}
             />
-            {isOpen ? (
+            <AutoCompleteMenu
+              {...{
+                isOpen,
+                getInputProps,
+                getItemProps,
+                getLabelProps,
+                highlightedIndex,
+                query: this.state.query
+              }}
+            />
+            {/*isOpen ? (
               <Paper css={{ position: 'absolute', maxWidth: '960px' }}>
-                {result && result.results.length > 0 ? (
-                  result.results.map((book, index) => (
+                {data && data.search.results.length > 0 ? (
+                  data.search.results.map((book, index) => (
                     <ListItem
                       {...getItemProps({
                         key: book.id,
@@ -120,7 +105,7 @@ export default class AutoCompleteSearchField extends React.Component<
                       />
                     </ListItem>
                   ))
-                ) : this.state.currentInput !== '' ? (
+                ) : this.state.query !== '' ? (
                   <Paper
                     css={{
                       position: 'absolute',
@@ -131,19 +116,106 @@ export default class AutoCompleteSearchField extends React.Component<
                   >
                     <ListItem>
                       <ListItemText
-                        primary={`No search results for "${
-                          this.state.currentInput
-                        }"`}
+                        primary={`No search results for "${this.state.query}"`}
                         primaryTypographyProps={{ noWrap: true }}
                       />
                     </ListItem>
                   </Paper>
                 ) : null}
               </Paper>
-            ) : null}
+            ) : null*/}
           </div>
         )}
       </Downshift>
     );
   }
 }
+
+function AutoCompleteMenu({
+  isOpen,
+  getInputProps,
+  getItemProps,
+  getLabelProps,
+  highlightedIndex,
+  query
+}) {
+  if (!isOpen || query.trim() === '') {
+    return null;
+  }
+
+  return (
+    <Query query={SEARCH_QUERY} variables={{ query }}>
+      {({ loading, error, data }) => {
+        if (loading) return null;
+        return (
+          <Paper css={{ position: 'absolute', maxWidth: '960px' }}>
+            {data && data.search.results.length > 0 ? (
+              data.search.results.map((book, index) => (
+                <ListItem
+                  {...getItemProps({
+                    key: book.id,
+                    item: book,
+                    index,
+                    style: {
+                      backgroundColor:
+                        highlightedIndex === index
+                          ? colors.base.grayLight
+                          : 'inherit'
+                    }
+                  })}
+                  button
+                >
+                  {book.coverImage && <Avatar src={book.coverImage.url} />}
+                  <ListItemText
+                    primary={
+                      <div>
+                        {book.title}
+                        <Typography variant="caption">
+                          {book.language.name}
+                        </Typography>
+                      </div>
+                    }
+                    secondary={book.description}
+                    primaryTypographyProps={{ noWrap: true }}
+                    secondaryTypographyProps={{ noWrap: true }}
+                  />
+                </ListItem>
+              ))
+            ) : query !== '' ? (
+              <Paper
+                css={{
+                  position: 'absolute',
+                  maxWidth: '960px',
+                  minWidth: '960px'
+                }}
+                square
+              >
+                <ListItem>
+                  <ListItemText
+                    primary={`No search results for "${query}"`}
+                    primaryTypographyProps={{ noWrap: true }}
+                  />
+                </ListItem>
+              </Paper>
+            ) : null}
+          </Paper>
+        );
+      }}
+    </Query>
+  );
+}
+
+const SEARCH_QUERY = gql`
+  query search($query: String!) {
+    search(query: $query) {
+      results {
+        id
+        title
+        description
+        language {
+          name
+        }
+      }
+    }
+  }
+`;
