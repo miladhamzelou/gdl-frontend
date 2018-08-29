@@ -13,11 +13,13 @@ import type { $Request, $Response } from 'express';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import JssProvider from 'react-jss/lib/JssProvider';
+import { ApolloProvider } from 'react-apollo';
 
 import { hasClaim, claims, hasAuthToken, setRedirectUrl } from 'gdl-auth';
 import Router from 'next/router';
 import { Button } from '@material-ui/core';
 
+import withApollo from '../lib/withApollo';
 import getPageContext from '../getPageContext';
 
 type Context = {
@@ -85,7 +87,8 @@ class App extends NextApp {
       Component,
       userHasAdminPrivileges,
       pageProps,
-      userHasAuthToken
+      userHasAuthToken,
+      apolloClient
     } = this.props;
 
     const Page = userHasAdminPrivileges ? (
@@ -103,7 +106,9 @@ class App extends NextApp {
           >
             {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
             <CssBaseline />
-            <Component pageContext={this.pageContext} {...pageProps} />
+            <ApolloProvider client={apolloClient}>
+              <Component pageContext={this.pageContext} {...pageProps} />
+            </ApolloProvider>
           </MuiThemeProvider>
         </JssProvider>
       ) : null
@@ -124,4 +129,4 @@ class App extends NextApp {
   }
 }
 
-export default App;
+export default withApollo(App);
