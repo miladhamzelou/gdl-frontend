@@ -24,13 +24,6 @@ const {
   publicRuntimeConfig: { bookApiUrl, imageApiUrl }
 } = getConfig();
 
-export async function fetchBook(
-  id: string | number,
-  language: string
-): Promise<RemoteData<BookDetails>> {
-  return await doFetch(`${bookApiUrl}/books/${language}/${id}`);
-}
-
 export async function exportBooks(
   language: string,
   source: string
@@ -121,18 +114,6 @@ export async function patchImageMetadata(
     method: 'PATCH',
     body: JSON.stringify(data)
   });
-
-  return result;
-}
-
-export async function fetchChapter(
-  bookId: string | number,
-  chapterId: string | number,
-  language: string
-): Promise<RemoteData<Chapter>> {
-  const result = await doFetch(
-    `${bookApiUrl}/books/${language}/${bookId}/chapters/${chapterId}`
-  );
 
   return result;
 }

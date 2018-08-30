@@ -76,7 +76,7 @@ export default class EditPage extends React.Component<
               </Query>
             )}
           {selectedTab === 1 &&
-            id && <EditChapterForm book={undefined} chapterId={chapterId} />}
+            id && <EditChapterForm bookId={id} chapterId={chapterId} />}
         </TabContainer>
       </Layout>
     );
@@ -104,6 +104,7 @@ const BOOK_QUERY = gql`
       publishingStatus
       pageOrientation
       coverImage {
+        imageId: id
         url
       }
     }
