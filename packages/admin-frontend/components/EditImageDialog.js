@@ -57,7 +57,6 @@ export default class EditImageDialog extends React.Component<Props, State> {
   fetchData = async () => {
     await this.fetchStoredParameters();
     await this.fetchImageMetadata();
-    await this.fetchLicenses();
   };
 
   fetchLicenses = async () => {

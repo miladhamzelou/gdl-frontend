@@ -6,39 +6,27 @@
  * See LICENSE
  */
 import * as React from 'react';
-import AppBar from '@material-ui/core/AppBar/AppBar';
-import Tab from '@material-ui/core/Tab/Tab';
-import Tabs from '@material-ui/core/Tabs/Tabs';
-import Typography from '@material-ui/core/Typography/Typography';
-import Container from '../../components/Container';
+import { AppBar, Typography, Tab, Tabs } from '@material-ui/core';
+import gql from 'graphql-tag';
+import { Query } from 'react-apollo';
+
 import EditBookForm from '../../components/EditBook/EditBookForm';
 import EditChapterForm from '../../components/EditBook/EditChapterForm';
-import { fetchBook } from '../../lib/fetch';
 import Layout from '../../components/Layout';
-import type { BookDetails, Context } from '../../types';
+import type { Context } from '../../types';
 
 type State = {
   selectedTab: number
 };
 
 export default class EditPage extends React.Component<
-  { book: ?BookDetails, chapterId: string },
+  { id: ?string, chapterId: string },
   State
 > {
   static async getInitialProps({ query }: Context) {
-    if (!query.id) {
-      return {};
-    }
-
-    const bookRes = await fetchBook(query.id, query.lang);
     const chapterId = query.chapterId;
 
-    let book;
-    if (bookRes.isOk) {
-      book = bookRes.data;
-    }
-
-    return { book, chapterId };
+    return { chapterId, id: query.id };
   }
 
   state = {
@@ -46,18 +34,28 @@ export default class EditPage extends React.Component<
     selectedTab: this.props.chapterId ? 1 : 0
   };
 
-  handleChange = (event: Event, selectedTab: number) => {
+  handleChange = (_: *, selectedTab: number) => {
     this.setState({ selectedTab });
   };
 
   render() {
-    const { book, chapterId } = this.props;
+    const { chapterId, id } = this.props;
     const selectedTab = this.state.selectedTab;
 
-    if (!book) {
-      return (
-        <Layout>
-          <Container>
+    return (
+      <Layout shouldAddPadding={false}>
+        <AppBar position="static" color="default">
+          <Tabs
+            centered={true}
+            value={selectedTab}
+            onChange={this.handleChange}
+          >
+            <Tab label="Edit Book" />
+            <Tab label="Edit Chapters" />
+          </Tabs>
+        </AppBar>
+        <TabContainer>
+          {!id && (
             <Typography
               align="center"
               variant="subheading"
@@ -65,35 +63,23 @@ export default class EditPage extends React.Component<
             >
               Search for a book to edit it.
             </Typography>
-          </Container>
-        </Layout>
-      );
-    } else {
-      return (
-        <Layout shouldAddPadding={false}>
-          <AppBar position="static" color="default">
-            <Tabs
-              centered={true}
-              value={selectedTab}
-              onChange={this.handleChange}
-            >
-              <Tab label="Edit Book" />
-              <Tab label="Edit Chapters" />
-            </Tabs>
-          </AppBar>
-          {selectedTab === 0 && (
-            <TabContainer>
-              <EditBookForm book={book} />
-            </TabContainer>
           )}
-          {selectedTab === 1 && (
-            <TabContainer>
-              <EditChapterForm book={book} chapterId={chapterId} />
-            </TabContainer>
-          )}
-        </Layout>
-      );
-    }
+          {selectedTab === 0 &&
+            id && (
+              <Query query={BOOK_QUERY} variables={{ id }}>
+                {({ loading, error, data }) => {
+                  if (loading || error) {
+                    return null;
+                  }
+                  return <EditBookForm book={data.book} />;
+                }}
+              </Query>
+            )}
+          {selectedTab === 1 &&
+            id && <EditChapterForm book={undefined} chapterId={chapterId} />}
+        </TabContainer>
+      </Layout>
+    );
   }
 }
 
@@ -104,3 +90,22 @@ function TabContainer(props) {
     </Typography>
   );
 }
+
+const BOOK_QUERY = gql`
+  query book($id: ID!) {
+    book(id: $id) {
+      id
+      title
+      description
+      language {
+        code
+        name
+      }
+      publishingStatus
+      pageOrientation
+      coverImage {
+        url
+      }
+    }
+  }
+`;

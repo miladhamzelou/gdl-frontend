@@ -11,7 +11,6 @@ import { getAuthToken } from 'gdl-auth';
 import getConfig from 'next/config';
 import type {
   BookDetails,
-  Category,
   RemoteData,
   Chapter,
   FeaturedContent,
@@ -38,18 +37,6 @@ export async function exportBooks(
 ): Promise<RemoteData<Blob>> {
   return await doFetch(`${bookApiUrl}/export/${language}/${source}`);
 }
-
-// Because the backend model and business logic for categories doesn't play nice together
-const bookCategoryMapper = book => {
-  const category: Category = book.categories.find(
-    c => c.name === 'classroom_books'
-  )
-    ? 'classroom_books'
-    : 'library_books';
-
-  book.category = category;
-  return book;
-};
 
 /*
 * Wrap fetch with some error handling and automatic json parsing
@@ -90,20 +77,6 @@ async function doFetch(
     isOk: false,
     statusCode: response.status
   };
-}
-
-export async function saveBook(
-  book: BookDetails
-): Promise<RemoteData<BookDetails>> {
-  const result = await doFetch(
-    `${bookApiUrl}/books/${book.language.code}/${book.id}`,
-    { method: 'PUT', body: JSON.stringify(book) }
-  );
-
-  if (result.isOk) {
-    result.data = bookCategoryMapper(result.data);
-  }
-  return result;
 }
 
 export async function postStoredParameters(

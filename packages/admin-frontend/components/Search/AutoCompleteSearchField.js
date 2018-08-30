@@ -32,7 +32,8 @@ export default class AutoCompleteSearchField extends React.Component<
   handleSelection = (selectedBook: Book) => {
     Router.push({
       pathname: '/admin/edit',
-      query: { id: selectedBook.id, lang: selectedBook.language.code }
+      // TODO: When search returns ID with language code. Fix this part
+      query: { id: `${selectedBook.id}-${selectedBook.language.code}` }
     });
   };
 

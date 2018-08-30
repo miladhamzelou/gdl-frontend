@@ -74,12 +74,12 @@ const FlaggedTable = ({
       </TableHead>
       <TableBody>
         {books.map(book => (
-          <TableRow key={`${book.id}-${book.language.code}`}>
+          <TableRow key={book.id}>
             <TableCell>
               <NextLink
                 href={{
                   pathname: '/admin/edit',
-                  query: { id: book.id, lang: book.language.code }
+                  query: { id: book.id }
                 }}
                 passHref
               >
@@ -118,7 +118,6 @@ const FLAGGED_BOOKS_QUERY = gql`
         id
         title
         language {
-          code
           name
         }
       }
