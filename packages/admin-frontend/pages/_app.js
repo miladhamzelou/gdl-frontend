@@ -14,13 +14,17 @@ import { MuiThemeProvider } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import JssProvider from 'react-jss/lib/JssProvider';
 import { ApolloProvider } from 'react-apollo';
-
 import { hasClaim, claims, hasAuthToken, setRedirectUrl } from 'gdl-auth';
+import withApollo from 'gdl-apollo-client/withApollo';
+import getConfig from 'next/config';
 import Router from 'next/router';
 import { Button } from '@material-ui/core';
 
-import withApollo from '../lib/withApollo';
 import getPageContext from '../getPageContext';
+
+const {
+  publicRuntimeConfig: { apiUrl }
+} = getConfig();
 
 type Context = {
   req?: $Request,
@@ -129,4 +133,4 @@ class App extends NextApp {
   }
 }
 
-export default withApollo(App);
+export default withApollo(App, apiUrl);

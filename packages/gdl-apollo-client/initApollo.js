@@ -6,15 +6,10 @@ import { onError } from 'apollo-link-error';
 import { setContext } from 'apollo-link-context';
 import { ApolloLink } from 'apollo-link';
 import fetch from 'isomorphic-unfetch';
-import getConfig from 'next/config';
-
-const {
-  publicRuntimeConfig: { apiUrl }
-} = getConfig();
 
 let apolloClient = null;
 
-function create(initialState, { getToken }) {
+function create(initialState, { getToken, apiUrl }) {
   const httpLink = new HttpLink({
     uri: apiUrl,
     fetch
@@ -53,7 +48,7 @@ function create(initialState, { getToken }) {
 
 export default function initApollo(
   initialState: {},
-  options: { getToken: () => ?string }
+  options: { getToken: () => ?string, apiUrl: string }
 ) {
   // Make sure to create a new client for every server-side request so that data
   // isn't shared between connections (which would be bad)

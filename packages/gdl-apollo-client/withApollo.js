@@ -1,18 +1,18 @@
 // @flow
-import React from 'react';
+import * as React from 'react';
 import initApollo from './initApollo';
 import Head from 'next/head';
 import { getDataFromTree } from 'react-apollo';
 import { getAuthToken } from 'gdl-auth';
 
-export default App => {
-  return class Apollo extends React.Component {
-    static displayName = `withApollo(${App.displayName})`;
+export default (App: React.ComponentType<{}>, apiUrl: string) => {
+  return class Apollo extends React.Component<{}> {
+    static displayName = `withApollo(${App.displayName || 'App'})`;
     static async getInitialProps(ctx) {
       const { Component, router } = ctx;
 
       let appProps = {};
-      if (App.getInitialProps) {
+      if (typeof App.getInitialProps === 'function') {
         appProps = await App.getInitialProps(ctx);
       }
 
@@ -21,7 +21,8 @@ export default App => {
       const apollo = initApollo(
         {},
         {
-          getToken: () => getAuthToken(ctx.ctx.req)
+          getToken: () => getAuthToken(ctx.ctx.req),
+          apiUrl
         }
       );
 
@@ -69,7 +70,8 @@ export default App => {
     constructor(props) {
       super(props);
       this.apolloClient = initApollo(props.apolloState, {
-        getToken: getAuthToken
+        getToken: getAuthToken,
+        apiUrl
       });
     }
 
