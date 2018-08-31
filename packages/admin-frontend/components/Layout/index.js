@@ -9,6 +9,8 @@
 import React, { type Node } from 'react';
 import Link from 'next/link';
 import Router from 'next/router';
+import gql from 'graphql-tag';
+import { Query } from 'react-apollo';
 import {
   AppBar,
   Button,
@@ -25,7 +27,7 @@ import {
 import AccountBox from '@material-ui/icons/AccountBox';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 
-import { getUserName, unsetAuthToken } from 'gdl-auth';
+import { unsetAuthToken } from 'gdl-auth';
 import AutoCompleteSearchField from '../Search/AutoCompleteSearchField';
 
 const drawerWidth = '240px';
@@ -150,8 +152,6 @@ const ProfileMenu = ({
   handleClose,
   handleLogOut
 }) => {
-  const userName = getUserName();
-
   return (
     <div css={{ minHeight: '64px', display: 'flex' }}>
       <Button
@@ -165,7 +165,11 @@ const ProfileMenu = ({
       >
         <AccountBox color="secondary" css={{ margin: '4px', fontSize: 36 }} />
         <Typography variant="subheading" css={{ margin: '4px' }}>
-          {userName}
+          <Query query={USER_QUERY}>
+            {({ data, loading }) =>
+              data.currentUser ? data.currentUser.name : 'Loading'
+            }
+          </Query>
         </Typography>
         <ExpandMore css={{ alignItems: 'flex-end', fontSize: 18 }} />
       </Button>
@@ -182,5 +186,13 @@ const ProfileMenu = ({
     </div>
   );
 };
+
+const USER_QUERY = gql`
+  query currentUser {
+    currentUser {
+      name
+    }
+  }
+`;
 
 export default Layout;

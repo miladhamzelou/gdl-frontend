@@ -25,20 +25,6 @@ export function hasClaim(claim: string, req: ?$Request): boolean {
   return decoded.scope && decoded.scope.includes(claim);
 }
 
-/**
- * Get username from JWT auth token
- * @param req Optional Express request object (for SSR)
- */
-export function getUserName(req: ?$Request): ?string {
-  const jwt = getAuthToken(req);
-  if (!jwt) {
-    return;
-  }
-  const decoded = jwtDecode(jwt);
-
-  return decoded['https://digitallibrary.io/user_name'];
-}
-
 export function hasAuthToken(req: ?$Request): boolean {
   return Boolean(getAuthToken(req));
 }
