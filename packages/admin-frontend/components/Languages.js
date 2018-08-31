@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react';
 import gql from 'graphql-tag';
+import type { QueryRenderProps } from 'react-apollo';
 import { Query } from 'react-apollo';
 
 const LANGUAGES_QUERY = gql`
@@ -12,4 +13,6 @@ const LANGUAGES_QUERY = gql`
   }
 `;
 
-export default props => <Query query={LANGUAGES_QUERY} {...props} />;
+export default (props: QueryRenderProps) => (
+  <Query query={LANGUAGES_QUERY} {...props} />
+);
