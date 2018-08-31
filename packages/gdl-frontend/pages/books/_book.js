@@ -415,7 +415,7 @@ const SIMILAR_BOOKS_QUERY = gql`
     book(id: $id) {
       similar(orderBy: arrivalDate_DESC, pageSize: 5) {
         id
-        databaseId
+        bookId
         title
         language {
           code

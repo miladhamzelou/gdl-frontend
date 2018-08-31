@@ -18,22 +18,121 @@ import {
   Divider,
   CircularProgress
 } from '@material-ui/core';
+import gql from 'graphql-tag';
 import { ArrowForward as ArrowForwardIcon } from '@material-ui/icons';
+import { Query } from 'react-apollo';
 
-import doFetch, { fetchMyTranslations } from '../../fetch';
+import doFetch from '../../fetch';
 import { Link } from '../../routes';
-import type { Translation } from '../../types';
 import { securePage } from '../../hocs';
+import type { Language } from '../../types';
 import Layout from '../../components/Layout';
-import Container from '../../components/Container';
+import { Center, Container } from '../../elements';
 import Head from '../../components/Head';
 import BookCover from '../../components/BookCover';
 import { spacing } from '../../style/theme';
 
+class MyTranslationsPage extends React.Component<{}> {
+  render() {
+    return (
+      <Layout>
+        <I18n>{({ i18n }) => <Head title={i18n.t`My translations`} />}</I18n>
+        <Container>
+          <Typography
+            variant="display1"
+            align="center"
+            paragraph
+            css={{ marginTop: spacing.large, marginBottom: spacing.large }}
+          >
+            <Trans>My translations</Trans>
+          </Typography>
+          <Query query={TRANSLATIONS_QUERY}>
+            {({ loading, data, error }) => {
+              if (loading) {
+                return (
+                  <Center>
+                    <CircularProgress />
+                  </Center>
+                );
+              }
+
+              if (error) {
+                return (
+                  <Typography align="center" color="error">
+                    <Trans>An error has occurred. Please try again.</Trans>
+                  </Typography>
+                );
+              }
+
+              const translations = data.currentUser.translations;
+
+              return translations.length === 0 ? (
+                <Typography
+                  align="center"
+                  paragraph
+                  css={{ marginTop: spacing.medium }}
+                >
+                  <Trans>You have not translated any books yet.</Trans>
+                </Typography>
+              ) : (
+                translations.map(t => (
+                  <TranslationCard
+                    key={`${t.id}-${t.translatedTo.code}`}
+                    translation={t}
+                  />
+                ))
+              );
+            }}
+          </Query>
+        </Container>
+      </Layout>
+    );
+  }
+}
+
+const TRANSLATIONS_QUERY = gql`
+  query translations {
+    currentUser {
+      translations {
+        id
+        bookId
+        title
+        coverImage {
+          url
+        }
+        translatedFrom {
+          code
+          name
+        }
+        translatedTo {
+          code
+          name
+        }
+        crowdinUrl
+        synchronizeUrl
+        publisher {
+          name
+        }
+      }
+    }
+  }
+`;
+
 class TranslationCard extends React.Component<
   {
-    translation: Translation,
-    handleSync: () => void
+    translation: {
+      id: string,
+      bookId: number,
+      title: string,
+      translatedFrom: Language,
+      translatedTo: Language,
+      synchronizeUrl: string,
+      crowdinUrl: string,
+      publisher: {
+        name: string
+      },
+      coverImage: ?{ url: string }
+    }
   },
   { isLoading: boolean, isSynchronized: boolean }
 > {
@@ -47,21 +146,20 @@ class TranslationCard extends React.Component<
     this.setState({ isLoading: true });
     await doFetch(this.props.translation.synchronizeUrl);
     this.setState({ isLoading: false, isSynchronized: true });
-    this.props.handleSync();
   };
 
   render() {
     const { translation } = this.props;
 
     return (
-      <Card key={translation.id} css={{ marginBottom: spacing.large }}>
+      <Card css={{ marginBottom: spacing.large }}>
         <Grid container>
           <Grid item>
             <Link
               route="book"
               params={{
                 lang: translation.translatedTo.code,
-                id: translation.id
+                id: translation.bookId
               }}
             >
               <a>
@@ -116,104 +214,6 @@ class TranslationCard extends React.Component<
           </Button>
         </CardActions>
       </Card>
-    );
-  }
-}
-
-type LoadingState = 'LOADING' | 'SUCCESS' | 'ERROR';
-
-type State = {
-  translations: Array<Translation>,
-  loadingState: LoadingState
-};
-
-class MyTranslationsPage extends React.Component<{}, State> {
-  state = {
-    translations: [],
-    loadingState: 'LOADING'
-  };
-
-  async componentDidMount() {
-    this.loadMyTranslations();
-  }
-
-  loadMyTranslations = async () => {
-    const translationsRes = await fetchMyTranslations();
-    if (translationsRes.isOk) {
-      this.setState({
-        translations: translationsRes.data,
-        loadingState: 'SUCCESS'
-      });
-    } else {
-      this.setState({
-        loadingState: 'ERROR'
-      });
-    }
-  };
-
-  handleSync = () => {
-    // Refreshes my translation cards when a card is synced
-    this.loadMyTranslations();
-  };
-
-  renderTranslations = () => {
-    if (this.state.translations.length === 0) {
-      return (
-        <Typography
-          align="center"
-          paragraph
-          css={{ marginTop: spacing.medium }}
-        >
-          <Trans>You have not translated any books yet.</Trans>
-        </Typography>
-      );
-    }
-
-    return this.state.translations.map(translation => (
-      <TranslationCard
-        key={`${translation.id}-${translation.translatedTo.code}`}
-        translation={translation}
-        handleSync={this.handleSync}
-      />
-    ));
-  };
-
-  render() {
-    const { loadingState } = this.state;
-
-    return (
-      <Layout>
-        <I18n>{({ i18n }) => <Head title={i18n.t`My translations`} />}</I18n>
-        <Container
-          css={{ marginTop: spacing.large, marginBottom: spacing.large }}
-        >
-          <Typography
-            variant="display1"
-            align="center"
-            paragraph
-            css={{ marginTop: spacing.large }}
-          >
-            <Trans>My translations</Trans>
-          </Typography>
-
-          {loadingState === 'LOADING' && (
-            <CircularProgress
-              css={{
-                marginTop: spacing.large,
-                display: 'block',
-                marginLeft: 'auto',
-                marginRight: 'auto'
-              }}
-            />
-          )}
-          {loadingState === 'SUCCESS' && this.renderTranslations()}
-          {loadingState === 'ERROR' && (
-            <Typography align="center" color="error">
-              <Trans>An error has occurred. Please try again.</Trans>
-            </Typography>
-          )}
-        </Container>
-      </Layout>
     );
   }
 }

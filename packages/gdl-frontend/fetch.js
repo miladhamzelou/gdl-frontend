@@ -166,10 +166,6 @@ export function fetchSupportedLanguages(): Promise<
   return doFetch(`${bookApiUrl()}/translations/supported-languages`);
 }
 
-export function fetchMyTranslations(): Promise<RemoteData<Array<Translation>>> {
-  return doFetch(`${bookApiUrl()}/books/mine`);
-}
-
 export function sendToTranslation(
   bookId: number | string,
   fromLanguage: string,
