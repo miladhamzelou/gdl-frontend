@@ -14,15 +14,22 @@ import Router from 'next/router';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import JssProvider from 'react-jss/lib/JssProvider';
+import withApollo from 'gdl-apollo-client';
+import getConfig from 'next/config';
+import { ApolloProvider } from 'react-apollo';
 
 import getPageContext from '../getPageContext';
 import Raven from '../lib/raven';
-import type { Context } from '../types';
+import type { Context, ConfigShape } from '../types';
 import GdlThemeProvider from '../components/GdlThemeProvider';
 import GdlI18nProvider from '../components/GdlI18nProvider';
 import { LOGOUT_KEY } from '../lib/auth/token';
 import { DEFAULT_TITLE } from '../components/Head';
 import { logPageView, initGA } from '../lib/analytics';
+
+const {
+  publicRuntimeConfig: { apiUrl }
+}: ConfigShape = getConfig();
 
 // Adds server generated styles to the emotion cache.
 // '__NEXT_DATA__.ids' is set in '_document.js'
@@ -90,7 +97,7 @@ class App extends NextApp {
   };
 
   render() {
-    const { Component, pageProps } = this.props;
+    const { Component, pageProps, apolloClient } = this.props;
     return (
       <NextContainer>
         <Head>
@@ -112,9 +119,11 @@ class App extends NextApp {
               >
                 {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
                 <CssBaseline />
-                {/* Pass pageContext to the _document though the renderPage enhancer
+                <ApolloProvider client={apolloClient}>
+                  {/* Pass pageContext to the _document though the renderPage enhancer
                 to render collected styles on server side. */}
-                <Component pageContext={this.pageContext} {...pageProps} />
+                  <Component pageContext={this.pageContext} {...pageProps} />
+                </ApolloProvider>
               </MuiThemeProvider>
             </JssProvider>
           </GdlI18nProvider>
@@ -124,4 +133,4 @@ class App extends NextApp {
   }
 }
 
-export default App;
+export default withApollo(App, apiUrl);

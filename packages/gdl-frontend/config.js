@@ -26,6 +26,8 @@ const bookApiUrl = () => {
   }
 };
 
+const apiUrl = () => 'http://localhost:4000/graphql';
+
 const canonicalUrl = () => {
   switch (GDL_ENVIRONMENT) {
     case 'dev':
@@ -67,6 +69,7 @@ module.exports = {
   publicRuntimeConfig: {
     bookApiUrl: bookApiUrl(),
     canonicalUrl: canonicalUrl(),
+    apiUrl: apiUrl(),
 
     DEFAULT_LANGUAGE: {
       code: 'en',

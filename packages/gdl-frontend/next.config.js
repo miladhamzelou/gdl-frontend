@@ -11,7 +11,7 @@ const { ANALYZE } = process.env;
 const nextConfig = {
   serverRuntimeConfig,
   publicRuntimeConfig,
-  transpileModules: ['gdl-auth'],
+  transpileModules: ['gdl-auth', 'gdl-apollo-client'],
   webpack(config, options) {
     if (ANALYZE) {
       config.plugins.push(

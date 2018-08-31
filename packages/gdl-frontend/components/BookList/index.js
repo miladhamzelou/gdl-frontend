@@ -79,8 +79,4 @@ const CoverDiv = styled('div')`
   }
 `;
 
-BookList.defaultProps = {
-  route: (book: Book) => `/${book.language.code}/books/${book.id}`
-};
-
 export default BookList;

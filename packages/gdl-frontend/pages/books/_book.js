@@ -11,6 +11,8 @@ import { Trans } from '@lingui/react';
 import NextLink from 'next/link';
 import getConfig from 'next/config';
 import styled from 'react-emotion';
+import gql from 'graphql-tag';
+import { Query } from 'react-apollo';
 import {
   Menu,
   MenuItem,
@@ -31,9 +33,9 @@ import {
   Share as ShareIcon
 } from '@material-ui/icons';
 
-import { fetchBook, fetchSimilarBooks } from '../../fetch';
+import { fetchBook } from '../../fetch';
 import { logEvent } from '../../lib/analytics';
-import type { Book, BookDetails, Context, ConfigShape } from '../../types';
+import type { BookDetails, Context, ConfigShape } from '../../types';
 import { errorPage } from '../../hocs';
 import { Link } from '../../routes';
 import Layout from '../../components/Layout';
@@ -54,7 +56,6 @@ const {
 
 type Props = {
   book: BookDetails,
-  similarBooks: Array<Book>,
   userHasEditAccess: boolean
 };
 
@@ -96,10 +97,7 @@ class BookPage extends React.Component<
   };
 
   static async getInitialProps({ query, req }: Context) {
-    const [bookRes, similarRes] = await Promise.all([
-      fetchBook(query.id, query.lang),
-      fetchSimilarBooks(query.id, query.lang)
-    ]);
+    const bookRes = await fetchBook(query.id, query.lang);
 
     if (!bookRes.isOk) {
       return {
@@ -109,9 +107,7 @@ class BookPage extends React.Component<
 
     return {
       book: bookRes.data,
-      userHasEditAccess: hasClaim(claims.writeBook, req),
-      // Don't let similar books crash the page
-      similarBooks: similarRes.isOk ? similarRes.data.results : []
+      userHasEditAccess: hasClaim(claims.writeBook, req)
     };
   }
 
@@ -135,7 +131,7 @@ class BookPage extends React.Component<
   };
 
   render() {
-    const { similarBooks, book } = this.props;
+    const { book } = this.props;
 
     return (
       <Fragment>
@@ -374,14 +370,25 @@ class BookPage extends React.Component<
 
           <Container>
             <Divider />
-            <View mb={spacing.medium} pt={spacing.medium}>
-              {similarBooks.length > 0 && (
-                <BookList
-                  heading={<Trans>Similar</Trans>}
-                  books={similarBooks}
-                />
-              )}
-            </View>
+            <Query
+              query={SIMILAR_BOOKS_QUERY}
+              variables={{ id: `${book.id}-${book.language.code}` }}
+            >
+              {({ data, error, loading }) => {
+                if (error || loading || data.book.similar.length === 0) {
+                  return null;
+                }
+
+                return (
+                  <View mb={spacing.medium} pt={spacing.medium}>
+                    <BookList
+                      heading={<Trans>Similar</Trans>}
+                      books={data.book.similar}
+                    />
+                  </View>
+                );
+              }}
+            </Query>
           </Container>
         </Layout>
       </Fragment>
@@ -402,5 +409,23 @@ const TabButton = props => (
     {...props}
   />
 );
+
+const SIMILAR_BOOKS_QUERY = gql`
+  query book($id: ID!) {
+    book(id: $id) {
+      similar(orderBy: arrivalDate_DESC, pageSize: 5) {
+        id
+        databaseId
+        title
+        language {
+          code
+        }
+        coverImage {
+          url
+        }
+      }
+    }
+  }
+`;
 
 export default errorPage(BookPage);
