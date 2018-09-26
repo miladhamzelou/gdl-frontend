@@ -13,8 +13,7 @@ import getConfig from 'next/config';
 import styled from 'react-emotion';
 import copyToClipboard from 'copy-to-clipboard';
 import {
-  Portal,
-  Backdrop,
+  Snackbar,
   Menu,
   MenuItem,
   ListItemIcon,
