@@ -23,7 +23,7 @@ import {
   Translate as TranslateIcon,
   Edit as EditIcon,
   Favorite as FavoriteIcon,
-  OfflinePin as OfflinePinIcon
+  CheckCircle as CheckCircleIcon
 } from '@material-ui/icons';
 
 import type { Language } from '../../types';
@@ -118,7 +118,7 @@ class GlobalMenu extends React.Component<Props, State> {
             <RouteLink passHref route="offline">
               <ListItem button component="a">
                 <ListItemIcon>
-                  <OfflinePinIcon />
+                  <CheckCircleIcon />
                 </ListItemIcon>
                 <ListItemText>
                   <Trans>Offline books</Trans>
